@@ -45,7 +45,8 @@
     "streambuf": "cpp",
     "cinttypes": "cpp",
     "typeinfo": "cpp",
-    "bitset": "cpp"
+    "bitset": "cpp",
+    "sstream": "cpp"
   },
   "workbench.colorTheme": "Default Dark Modern"
 }
