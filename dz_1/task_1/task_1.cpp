@@ -10,7 +10,7 @@
 
 void run(std::istream& in, std::ostream& out);
 unsigned int inverse_bit(const unsigned int& N, const unsigned int& K);
-void test();
+void test_algorithm();
 
 int main(void) {
     // test();
@@ -34,7 +34,7 @@ void run(std::istream& in, std::ostream& out) {
     out << inverse_bit(N, K);
 }
 
-void test() {
+void test_algorithm() {
     {
         std::stringstream in;
         std::stringstream out;

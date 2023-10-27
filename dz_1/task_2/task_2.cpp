@@ -17,7 +17,7 @@
 */
 
 void run(std::istream& in, std::ostream& out);
-void test();
+void test_algorithm();
 
 int main(void) {
     // test();
@@ -148,7 +148,7 @@ void run(std::istream& in, std::ostream& out) {
 
 // -----------------ТЕСТИРОВАНИЕ-------------------
 
-void test() {
+void test_algorithm() {
     {
         std::stringstream in;
         std::stringstream out;
