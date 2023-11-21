@@ -46,7 +46,8 @@
     "cinttypes": "cpp",
     "typeinfo": "cpp",
     "bitset": "cpp",
-    "sstream": "cpp"
+    "sstream": "cpp",
+    "fstream": "cpp"
   },
   "workbench.colorTheme": "Default Dark Modern"
 }
