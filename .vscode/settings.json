@@ -47,7 +47,13 @@
     "typeinfo": "cpp",
     "bitset": "cpp",
     "sstream": "cpp",
-    "fstream": "cpp"
+    "fstream": "cpp",
+    "chrono": "cpp",
+    "ctime": "cpp",
+    "ratio": "cpp",
+    "semaphore": "cpp",
+    "stop_token": "cpp",
+    "thread": "cpp"
   },
   "workbench.colorTheme": "Default Dark Modern"
 }
