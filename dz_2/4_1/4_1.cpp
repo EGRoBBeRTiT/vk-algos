@@ -1,4 +1,6 @@
+#include <assert.h>
 #include <iostream>
+#include <sstream>
 
 /*
     В одной военной части решили построить в одну шеренгу по росту. Т.к. часть
@@ -68,7 +70,7 @@ class AvlTree {
 
     void Add(const T& data) { root = add_internal(root, data); }
 
-    size_t findInsertedPos(const T& key) {
+    size_t FindInsertedPos(const T& key) {
         return find_inserted_pos(root, key);
     }
 
@@ -118,7 +120,7 @@ void run(std::istream& in, std::ostream& out) {
     for (size_t i = 0; i < n; i++) {
         in >> action >> data;
         if (action == 1) {
-            out << tree.findInsertedPos(data) << std::endl;
+            out << tree.FindInsertedPos(data) << std::endl;
             tree.Add(data);
         } else {
             tree.Delete(data);
@@ -147,9 +149,11 @@ size_t AvlTree<T, Cmp>::find_inserted_pos(Node* node, const T& key) {
     if (!node) {
         return 0;
     }
+
     if (cmp(key, node->data)) {
         return find_inserted_pos(node->left, key);
     }
+
     return find_inserted_pos(node->right, key) + get_count(node->left) + 1;
 }
 
@@ -158,6 +162,7 @@ void AvlTree<T, Cmp>::destroy_tree(Node* node) {
     if (node) {
         destroy_tree(node->left);
         destroy_tree(node->right);
+
         delete node;
     }
 }
@@ -196,6 +201,7 @@ typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::delete_internal(Node* node,
 
         return do_balance(newNode);
     }
+
     return do_balance(node);
 }
 
@@ -219,7 +225,9 @@ typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::find_and_remove_max(
         subtreeRoot = maxNode;
         return maxNode->left;
     }
+
     maxNode->right = find_and_remove_max(maxNode->right, subtreeRoot);
+
     return do_balance(maxNode);
 }
 
@@ -244,10 +252,12 @@ typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::rotate_left(Node* node) {
     Node* tmp = node->right;
     node->right = tmp->left;
     tmp->left = node;
+
     fix_height(node);
     fix_height(tmp);
     fix_count(node);
     fix_count(tmp);
+
     return tmp;
 }
 
@@ -256,10 +266,12 @@ typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::rotate_right(Node* node) {
     Node* tmp = node->left;
     node->left = tmp->right;
     tmp->right = node;
+
     fix_height(node);
     fix_height(tmp);
     fix_count(node);
     fix_count(tmp);
+
     return tmp;
 }
 
@@ -283,5 +295,22 @@ typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::do_balance(Node* node) {
         }
         default:
             return node;
+    }
+}
+
+//---------------Тестирование алгоритма---------------
+
+void test_algorithm() {
+    {
+        std::stringstream in;
+        std::stringstream out;
+
+        in << "5\n1\n100\n1\n200\n1\n50\n2\n1\n1\n150\n";
+
+        run(in, out);
+
+        assert(out.str() == "0\n0\n2\n1\n");
+
+        std::cout << "OK" << std::endl;
     }
 }
