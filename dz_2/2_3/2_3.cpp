@@ -1,7 +1,7 @@
 #include <assert.h>
-// #include <fstream>
 #include <iostream>
 #include <sstream>
+#include <stack>
 
 /*
     2.3. Порядок обхода
@@ -23,7 +23,6 @@ void test_algorithm();
 
 int main(void) {
     // test_algorithm();
-    // test_table();
     run(std::cin, std::cout);
 
     return 0;
@@ -31,30 +30,181 @@ int main(void) {
 
 // ----------------РЕШЕНИЕ------------------------
 
-// --------------Класс----------------------------
+// ------------Класс бинарного дерева------------
+class BinaryTree {
+    struct Node {
+        Node(const long& value) : value(value), left(nullptr), right(nullptr) {}
 
-//------------------------------------------------
+        Node* left;
+        Node* right;
+        long value;
+    };
+
+   public:
+    BinaryTree() : root(nullptr) {}
+    ~BinaryTree();
+
+    void Add(const long&);
+    void Post_order_out(std::ostream& out);
+
+   private:
+    Node* root;
+};
+
+//---------------Ввод данных---------------------
 
 void run(std::istream& in, std::ostream& out) {
-    char command = '\0';
-    std::string value;
+    BinaryTree tree;
+
+    size_t n = 0;
+    long value = 0;
+
+    in >> n;
+
+    for (size_t i = 0; i < n; i++) {
+        in >> value;
+
+        tree.Add(value);
+    }
+
+    tree.Post_order_out(out);
 }
+
+// --------------Описание класса ------------
+
+void BinaryTree::Add(const long& value) {
+    if (!root) {
+        root = new Node(value);
+        return;
+    }
+
+    Node* current = root;
+
+    while (true) {
+        if (current->value <= value && !current->right) {
+            current->right = new Node(value);
+
+            return;
+        }
+        if (current->value > value && !current->left) {
+            current->left = new Node(value);
+
+            return;
+        }
+        if (current->value <= value) {
+            current = current->right;
+        } else {
+            current = current->left;
+        }
+    }
+}
+
+BinaryTree::~BinaryTree() {
+    std::stack<Node*> stack;
+    Node* current_node = root;
+    Node* del_node = nullptr;
+
+    while (!stack.empty() || current_node) {
+        while (current_node) {
+            stack.push(current_node);
+            current_node = current_node->left;
+        }
+
+        del_node = stack.top();
+        stack.pop();
+        current_node = del_node->right;
+
+        delete del_node;
+    }
+}
+
+void BinaryTree::Post_order_out(std::ostream& out) {
+    std::stack<Node*> stack;
+    Node* current_node = root;
+    Node* stack_node = nullptr;
+    Node* prev_stack_node = nullptr;
+    stack.push(current_node);
+
+    while (!stack.empty()) {
+        if (current_node->left) {
+            stack.push(current_node->left);
+            current_node = current_node->left;
+
+            continue;
+        }
+
+        if (current_node->right) {
+            stack.push(current_node->right);
+            current_node = current_node->right;
+
+            continue;
+        }
+
+        stack_node = stack.top();
+        stack.pop();
+
+        out << stack_node->value << " ";
+
+        if (!stack.empty()) {
+            prev_stack_node = stack.top();
+
+            if (prev_stack_node->left == stack_node && prev_stack_node->right) {
+                stack.push(prev_stack_node->right);
+                current_node = prev_stack_node->right;
+            }
+        }
+    }
+}
+
+//---------------Тестирование алгоритма---------------
 
 void test_algorithm() {
     {
         std::stringstream in;
         std::stringstream out;
 
-        in << "+ hello\n";
+        in << "3\n2\n1\n3\n";
 
         run(in, out);
 
-        assert(out.str() == "OK\nOK\nOK\nFAIL\nOK\nFAIL\nOK\n");
+        assert(out.str() == "1 3 2 ");
+
+        std::cout << "OK" << std::endl;
+    }
+    {
+        std::stringstream in;
+        std::stringstream out;
+
+        in << "3\n1\n2\n3\n";
+
+        run(in, out);
+
+        assert(out.str() == "3 2 1 ");
+
+        std::cout << "OK" << std::endl;
+    }
+    {
+        std::stringstream in;
+        std::stringstream out;
+
+        in << "3\n3\n1\n2\n";
+
+        run(in, out);
+
+        assert(out.str() == "2 1 3 ");
+
+        std::cout << "OK" << std::endl;
+    }
+    {
+        std::stringstream in;
+        std::stringstream out;
+
+        in << "10\n7\n2\n10\n8\n5\n3\n6\n4\n1\n9\n";
+
+        run(in, out);
+
+        assert(out.str() == "1 4 3 6 5 2 9 8 10 7 ");
 
         std::cout << "OK" << std::endl;
     }
 }
-
-// --------------Описание класса ------------
-
-//---------------------------------------------
