@@ -26,7 +26,29 @@
     двигаются назад).
 */
 
-template <typename T, typename Cmp = std::less<T>>
+void run(std::istream& in, std::ostream& out);
+void test_algorithm();
+
+int main(void) {
+    // test_algorithm();
+    run(std::cin, std::cout);
+
+    return 0;
+}
+
+// ----------------РЕШЕНИЕ------------------------
+
+template <typename T>
+struct DefaultComparator {
+    int operator()(const T& l, const T& r) const {
+        if (l < r)
+            return -1;
+        if (l > r)
+            return 1;
+        return 0;
+    }
+};
+template <typename T, typename Cmp = DefaultComparator<T>>
 class AvlTree {
     struct Node {
         Node(const T& data)
@@ -40,200 +62,226 @@ class AvlTree {
     };
 
    public:
-    AvlTree() : root_(nullptr) {}
+    AvlTree(Cmp cmp = Cmp()) : root(nullptr), cmp(cmp) {}
 
-    ~AvlTree() { destroyTree_(root_); }
+    ~AvlTree() { destroy_tree(root); }
 
-    void add(const T& data) { root_ = addInternal_(root_, data); }
+    void Add(const T& data) { root = add_internal(root, data); }
 
     size_t findInsertedPos(const T& key) {
-        return findInsertedPos_(root_, key);
+        return find_inserted_pos(root, key);
     }
 
-    bool has(const T& data) {
-        Node* tmp = root_;
-        while (tmp) {
-            if (tmp->data == data) {
-                return true;
-            } else if (cmp_(tmp->data, data)) {
-                tmp = tmp->right;
-            } else {
-                tmp = tmp->left;
-            }
-        }
-        return false;
-    }
-
-    void erase(const T& data) { root_ = deleteInternal_(root_, data); }
+    bool Has(const T&);
+    void Delete(const T& data) { root = delete_internal(root, data); }
 
    private:
-    size_t findInsertedPos_(Node* node, const T& key) {
-        if (!node) {
-            return 0;
-        }
-        if (cmp_(key, node->data)) {
-            return findInsertedPos_(node->left, key);
-        }
-        return findInsertedPos_(node->right, key) + getCount_(node->left) + 1;
-    }
+    size_t find_inserted_pos(Node* node, const T& key);
+    void destroy_tree(Node* node);
+    Node* delete_internal(Node* node, T data);
+    Node* find_and_remove_min(Node* minNode, Node*& subtreeRoot);
+    Node* find_and_remove_max(Node* maxNode, Node*& subtreeRoot);
+    Node* add_internal(Node* node, const T& data);
+    size_t get_height(Node* node) { return node ? node->height : 0; }
+    Node* rotate_left(Node* node);
+    Node* rotate_right(Node* node);
+    Node* do_balance(Node* node);
 
-    void destroyTree_(Node* node) {
-        if (node) {
-            destroyTree_(node->left);
-            destroyTree_(node->right);
-            delete node;
-        }
-    }
-
-    Node* deleteInternal_(Node* node, T data) {
-        if (!node) {
-            return nullptr;
-        }
-        if (getCount_(node->left) > data) {
-            node->left = deleteInternal_(node->left, data);
-        } else if (getCount_(node->left) < data) {
-            node->right =
-                deleteInternal_(node->right, data - getCount_(node->left) - 1);
-        } else {
-            Node* left = node->left;
-            Node* right = node->right;
-
-            delete node;
-
-            if (!right) {
-                return left;
-            }
-
-            Node* newNode = nullptr;
-            if (getHeight_(right) > getHeight_(left)) {
-                Node* newRight = findAndRemoveMin_(right, newNode);
-                newNode->left = left;
-                newNode->right = newRight;
-            } else {
-                Node* newLeft = findAndRemoveMax_(left, newNode);
-                newNode->left = newLeft;
-                newNode->right = right;
-            }
-
-            return doBalance_(newNode);
-        }
-        return doBalance_(node);
-    }
-
-    Node* findAndRemoveMin_(Node* minNode, Node*& subtreeRoot) {
-        if (!minNode->left) {
-            subtreeRoot = minNode;
-            return minNode->right;
-        }
-        minNode->left = findAndRemoveMin_(minNode->left, subtreeRoot);
-        return doBalance_(minNode);
-    }
-
-    Node* findAndRemoveMax_(Node* maxNode, Node*& subtreeRoot) {
-        if (!maxNode->right) {
-            subtreeRoot = maxNode;
-            return maxNode->left;
-        }
-        maxNode->right = findAndRemoveMax_(maxNode->right, subtreeRoot);
-        return doBalance_(maxNode);
-    }
-
-    Node* addInternal_(Node* node, const T& data) {
-        if (!node) {
-            return new Node(data);
-        }
-
-        if (!cmp_(data, node->data)) {
-            node->right = addInternal_(node->right, data);
-        } else {
-            node->left = addInternal_(node->left, data);
-        }
-
-        return doBalance_(node);
-    }
-
-    size_t getHeight_(Node* node) { return node ? node->height : 0; }
-
-    void fixHeight_(Node* node) {
+    void fix_height(Node* node) {
         node->height =
-            std::max(getHeight_(node->left), getHeight_(node->right)) + 1;
+            std::max(get_height(node->left), get_height(node->right)) + 1;
     }
 
-    size_t getCount_(Node* node) { return node ? node->count : 0; }
+    size_t get_count(Node* node) { return node ? node->count : 0; }
 
-    void fixCount_(Node* node) {
-        node->count = getCount_(node->left) + getCount_(node->right) + 1;
+    void fix_count(Node* node) {
+        node->count = get_count(node->left) + get_count(node->right) + 1;
     }
 
-    int getBalance_(Node* node) {
-        return getHeight_(node->right) - getHeight_(node->left);
+    int get_balance(Node* node) {
+        return get_height(node->right) - get_height(node->left);
     }
 
-    Node* rotateLeft_(Node* node) {
-        Node* tmp = node->right;
-        node->right = tmp->left;
-        tmp->left = node;
-        fixHeight_(node);
-        fixHeight_(tmp);
-        fixCount_(node);
-        fixCount_(tmp);
-        return tmp;
-    }
-
-    Node* rotateRight_(Node* node) {
-        Node* tmp = node->left;
-        node->left = tmp->right;
-        tmp->right = node;
-        fixHeight_(node);
-        fixHeight_(tmp);
-        fixCount_(node);
-        fixCount_(tmp);
-        return tmp;
-    }
-
-    Node* doBalance_(Node* node) {
-        fixHeight_(node);
-        fixCount_(node);
-        switch (getBalance_(node)) {
-            case 2: {
-                if (getBalance_(node->right) < 0) {
-                    node->right = rotateRight_(node->right);
-                }
-                return rotateLeft_(node);
-            }
-            case -2: {
-                if (getBalance_(node->left) > 0) {
-                    node->left = rotateLeft_(node->left);
-                }
-                return rotateRight_(node);
-            }
-            default:
-                return node;
-        }
-    }
-
-    Node* root_;
-    Cmp cmp_;
+    Node* root;
+    Cmp cmp;
 };
 
-int main() {
+//---------------Ввод данных---------------------
+
+void run(std::istream& in, std::ostream& out) {
     size_t n = 0;
     size_t action = 0, data = 0;
     AvlTree<size_t, std::greater<>> tree;
 
-    std::cin >> n;
+    in >> n;
 
     for (size_t i = 0; i < n; i++) {
-        std::cin >> action >> data;
+        in >> action >> data;
         if (action == 1) {
-            std::cout << tree.findInsertedPos(data) << std::endl;
-            tree.add(data);
+            out << tree.findInsertedPos(data) << std::endl;
+            tree.Add(data);
         } else {
-            tree.erase(data);
+            tree.Delete(data);
         }
     }
-
-    return 0;
 }
 
-//----------Описание класса
+// --------------Описание класса ------------
+template <typename T, typename Cmp>
+bool AvlTree<T, Cmp>::Has(const T& data) {
+    Node* tmp = root;
+    while (tmp) {
+        if (tmp->data == data) {
+            return true;
+        } else if (cmp(tmp->data, data)) {
+            tmp = tmp->right;
+        } else {
+            tmp = tmp->left;
+        }
+    }
+    return false;
+}
+
+template <typename T, typename Cmp>
+size_t AvlTree<T, Cmp>::find_inserted_pos(Node* node, const T& key) {
+    if (!node) {
+        return 0;
+    }
+    if (cmp(key, node->data)) {
+        return find_inserted_pos(node->left, key);
+    }
+    return find_inserted_pos(node->right, key) + get_count(node->left) + 1;
+}
+
+template <typename T, typename Cmp>
+void AvlTree<T, Cmp>::destroy_tree(Node* node) {
+    if (node) {
+        destroy_tree(node->left);
+        destroy_tree(node->right);
+        delete node;
+    }
+}
+
+template <typename T, typename Cmp>
+typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::delete_internal(Node* node,
+                                                                 T data) {
+    if (!node) {
+        return nullptr;
+    }
+    if (get_count(node->left) > data) {
+        node->left = delete_internal(node->left, data);
+    } else if (get_count(node->left) < data) {
+        node->right =
+            delete_internal(node->right, data - get_count(node->left) - 1);
+    } else {
+        Node* left = node->left;
+        Node* right = node->right;
+
+        delete node;
+
+        if (!right) {
+            return left;
+        }
+
+        Node* newNode = nullptr;
+        if (get_height(right) > get_height(left)) {
+            Node* newRight = find_and_remove_min(right, newNode);
+            newNode->left = left;
+            newNode->right = newRight;
+        } else {
+            Node* newLeft = find_and_remove_max(left, newNode);
+            newNode->left = newLeft;
+            newNode->right = right;
+        }
+
+        return do_balance(newNode);
+    }
+    return do_balance(node);
+}
+
+template <typename T, typename Cmp>
+typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::find_and_remove_min(
+    Node* minNode,
+    Node*& subtreeRoot) {
+    if (!minNode->left) {
+        subtreeRoot = minNode;
+        return minNode->right;
+    }
+    minNode->left = find_and_remove_min(minNode->left, subtreeRoot);
+    return do_balance(minNode);
+}
+
+template <typename T, typename Cmp>
+typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::find_and_remove_max(
+    Node* maxNode,
+    Node*& subtreeRoot) {
+    if (!maxNode->right) {
+        subtreeRoot = maxNode;
+        return maxNode->left;
+    }
+    maxNode->right = find_and_remove_max(maxNode->right, subtreeRoot);
+    return do_balance(maxNode);
+}
+
+template <typename T, typename Cmp>
+typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::add_internal(Node* node,
+                                                              const T& data) {
+    if (!node) {
+        return new Node(data);
+    }
+
+    if (!cmp(data, node->data)) {
+        node->right = add_internal(node->right, data);
+    } else {
+        node->left = add_internal(node->left, data);
+    }
+
+    return do_balance(node);
+}
+
+template <typename T, typename Cmp>
+typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::rotate_left(Node* node) {
+    Node* tmp = node->right;
+    node->right = tmp->left;
+    tmp->left = node;
+    fix_height(node);
+    fix_height(tmp);
+    fix_count(node);
+    fix_count(tmp);
+    return tmp;
+}
+
+template <typename T, typename Cmp>
+typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::rotate_right(Node* node) {
+    Node* tmp = node->left;
+    node->left = tmp->right;
+    tmp->right = node;
+    fix_height(node);
+    fix_height(tmp);
+    fix_count(node);
+    fix_count(tmp);
+    return tmp;
+}
+
+template <typename T, typename Cmp>
+typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::do_balance(Node* node) {
+    fix_height(node);
+    fix_count(node);
+
+    switch (get_balance(node)) {
+        case 2: {
+            if (get_balance(node->right) < 0) {
+                node->right = rotate_right(node->right);
+            }
+            return rotate_left(node);
+        }
+        case -2: {
+            if (get_balance(node->left) > 0) {
+                node->left = rotate_left(node->left);
+            }
+            return rotate_right(node);
+        }
+        default:
+            return node;
+    }
+}

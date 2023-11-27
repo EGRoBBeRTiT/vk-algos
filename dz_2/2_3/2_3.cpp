@@ -41,7 +41,7 @@ class BinaryTree {
     };
 
    public:
-    BinaryTree() : root(nullptr) {}
+    BinaryTree() : root(nullptr){};
     ~BinaryTree();
 
     void Add(const long&);
@@ -99,23 +99,46 @@ void BinaryTree::Add(const long& value) {
     }
 }
 
+// destructor post order
 BinaryTree::~BinaryTree() {
     std::stack<Node*> stack;
-    Node* current_node = root;
-    Node* del_node = nullptr;
+    Node* current_node = nullptr;
+    Node* prev_node = nullptr;
+    stack.push(root);
 
-    while (!stack.empty() || current_node) {
-        while (current_node) {
-            stack.push(current_node);
-            current_node = current_node->left;
+    while (!stack.empty()) {
+        current_node = stack.top();
+
+        if (current_node->left) {
+            stack.push(current_node->left);
+
+            continue;
         }
 
-        del_node = stack.top();
-        stack.pop();
-        current_node = del_node->right;
+        if (current_node->right) {
+            stack.push(current_node->right);
 
-        delete del_node;
+            continue;
+        }
+
+        prev_node = current_node;
+
+        delete current_node;
+        current_node = nullptr;
+        stack.pop();
+
+        if (!stack.empty()) {
+            current_node = stack.top();
+
+            if (prev_node == current_node->left) {
+                current_node->left = nullptr;
+            } else {
+                current_node->right = nullptr;
+            }
+        }
     }
+
+    root = nullptr;
 }
 
 void BinaryTree::Post_order_out(std::ostream& out) {
