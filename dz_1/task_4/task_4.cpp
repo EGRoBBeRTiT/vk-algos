@@ -14,15 +14,15 @@
     Требования: время работы O(N * logK). Ограничение на размер кучи O(K).
 */
 
-template <class T>
+template <class Key>
 struct DefaultComparator {
-    bool operator()(const T& l, const T& r) const { return l < r; }
+    bool operator()(const Key& l, const Key& r) const { return l < r; }
 };
 
-template <class T, class Comparator = DefaultComparator<T>>
+template <class Key, class Comparator = DefaultComparator<Key>>
 class Heap;
 
-template <class T>
+template <class Key>
 class Array;
 
 void run(std::istream& in, std::ostream& out);
@@ -39,11 +39,11 @@ int main(void) {
 
 // -----------------РЕШЕНИЕ-------------------
 
-template <class T, class Comparator>
+template <class Key, class Comparator>
 class Heap {
    public:
-    Heap(Comparator comp = DefaultComparator<T>());
-    Heap(size_t size, Comparator comp = DefaultComparator<T>());
+    Heap(Comparator comp = DefaultComparator<Key>());
+    Heap(size_t size, Comparator comp = DefaultComparator<Key>());
     Heap(const Heap& heap);
     ~Heap() { delete[] buffer; };
 
@@ -54,7 +54,7 @@ class Heap {
         capacity = heap.capacity;
         size = heap.size;
 
-        buffer = new T[capacity];
+        buffer = new Key[capacity];
 
         for (int i = 0; i < size; ++i) {
             buffer[i] = heap.buffer[i];
@@ -63,9 +63,9 @@ class Heap {
         return *this;
     }
 
-    void Insert(const T& val);
+    void Insert(const Key& val);
     bool IsEmpty() { return size == 0; };
-    T ExtractTop();
+    Key ExtractTop();
 
    private:
     void siftUp(size_t index);
@@ -75,19 +75,19 @@ class Heap {
 
     Comparator comparator;
 
-    T* buffer;
+    Key* buffer;
     size_t capacity;
     size_t size;
 };
 
-template <class T>
+template <class Key>
 class Array {
    public:
-    Array() : buffer(new T[8]), capacity(8), curPos(0), size(0){};
+    Array() : buffer(new Key[8]), capacity(8), curPos(0), size(0){};
     Array(size_t capacity)
-        : buffer(new T[capacity]), capacity(capacity), curPos(0), size(0){};
+        : buffer(new Key[capacity]), capacity(capacity), curPos(0), size(0){};
     Array(const Array& arr)
-        : buffer(new T[arr.capacity]),
+        : buffer(new Key[arr.capacity]),
           capacity(arr.capacity),
           curPos(arr.curPos),
           size(arr.size) {
@@ -102,7 +102,7 @@ class Array {
         capacity = arr.capacity;
         size = arr.size;
 
-        buffer = new T[capacity];
+        buffer = new Key[capacity];
 
         for (int i = 0; i < size; ++i) {
             buffer[i] = arr.buffer[i];
@@ -112,14 +112,14 @@ class Array {
     }
     ~Array() { delete[] buffer; };
 
-    void Push(const T& value) {
+    void Push(const Key& value) {
         if (size < capacity) {
             buffer[size] = value;
             size++;
         }
     }
 
-    T GetCurValue() {
+    Key GetCurValue() {
         if (size > 0 && curPos < size) {
             return buffer[curPos];
         }
@@ -146,7 +146,7 @@ class Array {
     }
 
    private:
-    T* buffer;
+    Key* buffer;
     size_t capacity;
     size_t curPos;
     size_t size;
@@ -208,30 +208,30 @@ void out_heap_array(std::ostream& out, Heap<Array<int>>& heap) {
 
 // -----------------Описание кучи-------------------
 
-template <class T, class Comparator>
-Heap<T, Comparator>::Heap(Comparator comp)
+template <class Key, class Comparator>
+Heap<Key, Comparator>::Heap(Comparator comp)
     : size(0), capacity(8), comparator(comp) {
-    buffer = new T[capacity];
+    buffer = new Key[capacity];
 }
 
-template <class T, class Comparator>
-Heap<T, Comparator>::Heap(size_t size, Comparator comp)
+template <class Key, class Comparator>
+Heap<Key, Comparator>::Heap(size_t size, Comparator comp)
     : size(0), capacity(size), comparator(comp) {
-    buffer = new T[capacity];
+    buffer = new Key[capacity];
 }
 
-template <class T, class Comparator>
-Heap<T, Comparator>::Heap(const Heap& heap)
+template <class Key, class Comparator>
+Heap<Key, Comparator>::Heap(const Heap& heap)
     : size(heap.size), capacity(heap.size), comparator(heap.comparator) {
-    buffer = new T[capacity];
+    buffer = new Key[capacity];
 
     for (int i = 0; i < size; ++i) {
         buffer[i] = heap.buffer[i];
     }
 }
 
-template <class T, class Comparator>
-void Heap<T, Comparator>::siftDown(const size_t& index) {
+template <class Key, class Comparator>
+void Heap<Key, Comparator>::siftDown(const size_t& index) {
     size_t left = 2 * index + 1;
     size_t right = 2 * index + 2;
 
@@ -250,8 +250,8 @@ void Heap<T, Comparator>::siftDown(const size_t& index) {
     }
 }
 
-template <class T, class Comparator>
-void Heap<T, Comparator>::siftUp(size_t index) {
+template <class Key, class Comparator>
+void Heap<Key, Comparator>::siftUp(size_t index) {
     while (index > 0) {
         size_t parent = (index - 1) / 2;
 
@@ -264,11 +264,11 @@ void Heap<T, Comparator>::siftUp(size_t index) {
     }
 }
 
-template <class T, class Comparator>
-void Heap<T, Comparator>::resize() {
+template <class Key, class Comparator>
+void Heap<Key, Comparator>::resize() {
     capacity *= 2;
 
-    T* new_buffer = new T[capacity];
+    Key* new_buffer = new Key[capacity];
 
     for (int i = 0; i < size; ++i) {
         new_buffer[i] = buffer[i];
@@ -279,8 +279,8 @@ void Heap<T, Comparator>::resize() {
     buffer = new_buffer;
 }
 
-template <class T, class Comparator>
-void Heap<T, Comparator>::Insert(const T& value) {
+template <class Key, class Comparator>
+void Heap<Key, Comparator>::Insert(const Key& value) {
     if (!canInsert()) {
         resize();
     }
@@ -291,11 +291,11 @@ void Heap<T, Comparator>::Insert(const T& value) {
     siftUp(size - 1);
 }
 
-template <class T, class Comparator>
-T Heap<T, Comparator>::ExtractTop() {
+template <class Key, class Comparator>
+Key Heap<Key, Comparator>::ExtractTop() {
     assert(!IsEmpty());
 
-    T result = buffer[0];
+    Key result = buffer[0];
     buffer[0] = buffer[--size];
 
     if (!IsEmpty()) {

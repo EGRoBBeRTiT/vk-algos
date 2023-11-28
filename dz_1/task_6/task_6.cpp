@@ -25,13 +25,13 @@ int main(void) {
 
 // -------------------------------------------
 
-template <class T>
+template <class Key>
 struct DefaultComparator {
-    bool operator()(const T& l, const T& r) const { return l < r; }
+    bool operator()(const Key& l, const Key& r) const { return l < r; }
 };
 
-template <typename T, typename Comp = DefaultComparator<T>>
-size_t get_pivot_index(T* arr,
+template <typename Key, typename Comp = DefaultComparator<Key>>
+size_t get_pivot_index(Key* arr,
                        const size_t& l,
                        const size_t& r,
                        Comp comp = Comp()) {
@@ -54,8 +54,8 @@ size_t get_pivot_index(T* arr,
     return index_3;
 }
 
-template <typename T, typename Comp = DefaultComparator<T>>
-size_t partition(T* arr, const size_t& l, const size_t& r, Comp comp = Comp()) {
+template <typename Key, typename Comp = DefaultComparator<Key>>
+size_t partition(Key* arr, const size_t& l, const size_t& r, Comp comp = Comp()) {
     size_t pivot_idx = get_pivot_index(arr, l, r, comp);
 
     std::swap(arr[l], arr[pivot_idx]);
@@ -80,8 +80,8 @@ size_t partition(T* arr, const size_t& l, const size_t& r, Comp comp = Comp()) {
     return i;
 }
 
-template <class T, class Comp = DefaultComparator<T>>
-T kth_element(T* arr, const size_t& size, const size_t& k, Comp comp = Comp()) {
+template <class Key, class Comp = DefaultComparator<Key>>
+Key kth_element(Key* arr, const size_t& size, const size_t& k, Comp comp = Comp()) {
     size_t l = 0;
     size_t r = size;
 

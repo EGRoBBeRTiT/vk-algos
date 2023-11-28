@@ -40,9 +40,9 @@ int main(void) {
 
 // ----------------РЕШЕНИЕ------------------------
 
-template <typename T>
+template <typename Key>
 struct DefaultComparator {
-    int operator()(const T& l, const T& r) const {
+    int operator()(const Key& l, const Key& r) const {
         if (l < r)
             return -1;
         if (l > r)
@@ -50,13 +50,13 @@ struct DefaultComparator {
         return 0;
     }
 };
-template <typename T, typename Cmp = DefaultComparator<T>>
+template <typename Key, typename Cmp = DefaultComparator<Key>>
 class AvlTree {
     struct Node {
-        Node(const T& data)
+        Node(const Key& data)
             : data(data), left(nullptr), right(nullptr), height(1), count(1) {}
 
-        T data;
+        Key data;
         Node* left;
         Node* right;
         size_t height;
@@ -68,22 +68,22 @@ class AvlTree {
 
     ~AvlTree() { destroy_tree(root); }
 
-    void Add(const T& data) { root = add_internal(root, data); }
+    void Add(const Key& data) { root = add_internal(root, data); }
 
-    size_t FindInsertedPos(const T& key) {
+    size_t FindInsertedPos(const Key& key) {
         return find_inserted_pos(root, key);
     }
 
-    bool Has(const T&);
-    void Delete(const T& data) { root = delete_internal(root, data); }
+    bool Has(const Key&);
+    void Delete(const Key& data) { root = delete_internal(root, data); }
 
    private:
-    size_t find_inserted_pos(Node* node, const T& key);
+    size_t find_inserted_pos(Node* node, const Key& key);
     void destroy_tree(Node* node);
-    Node* delete_internal(Node* node, T data);
+    Node* delete_internal(Node* node, Key data);
     Node* find_and_remove_min(Node* minNode, Node*& subtreeRoot);
     Node* find_and_remove_max(Node* maxNode, Node*& subtreeRoot);
-    Node* add_internal(Node* node, const T& data);
+    Node* add_internal(Node* node, const Key& data);
     size_t get_height(Node* node) { return node ? node->height : 0; }
     Node* rotate_left(Node* node);
     Node* rotate_right(Node* node);
@@ -129,8 +129,8 @@ void run(std::istream& in, std::ostream& out) {
 }
 
 // --------------Описание класса ------------
-template <typename T, typename Cmp>
-bool AvlTree<T, Cmp>::Has(const T& data) {
+template <typename Key, typename Cmp>
+bool AvlTree<Key, Cmp>::Has(const Key& data) {
     Node* tmp = root;
     while (tmp) {
         if (tmp->data == data) {
@@ -144,8 +144,8 @@ bool AvlTree<T, Cmp>::Has(const T& data) {
     return false;
 }
 
-template <typename T, typename Cmp>
-size_t AvlTree<T, Cmp>::find_inserted_pos(Node* node, const T& key) {
+template <typename Key, typename Cmp>
+size_t AvlTree<Key, Cmp>::find_inserted_pos(Node* node, const Key& key) {
     if (!node) {
         return 0;
     }
@@ -157,8 +157,8 @@ size_t AvlTree<T, Cmp>::find_inserted_pos(Node* node, const T& key) {
     return find_inserted_pos(node->right, key) + get_count(node->left) + 1;
 }
 
-template <typename T, typename Cmp>
-void AvlTree<T, Cmp>::destroy_tree(Node* node) {
+template <typename Key, typename Cmp>
+void AvlTree<Key, Cmp>::destroy_tree(Node* node) {
     if (node) {
         destroy_tree(node->left);
         destroy_tree(node->right);
@@ -167,9 +167,9 @@ void AvlTree<T, Cmp>::destroy_tree(Node* node) {
     }
 }
 
-template <typename T, typename Cmp>
-typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::delete_internal(Node* node,
-                                                                 T data) {
+template <typename Key, typename Cmp>
+typename AvlTree<Key, Cmp>::Node* AvlTree<Key, Cmp>::delete_internal(Node* node,
+                                                                     Key data) {
     if (!node) {
         return nullptr;
     }
@@ -205,8 +205,8 @@ typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::delete_internal(Node* node,
     return do_balance(node);
 }
 
-template <typename T, typename Cmp>
-typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::find_and_remove_min(
+template <typename Key, typename Cmp>
+typename AvlTree<Key, Cmp>::Node* AvlTree<Key, Cmp>::find_and_remove_min(
     Node* minNode,
     Node*& subtreeRoot) {
     if (!minNode->left) {
@@ -217,8 +217,8 @@ typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::find_and_remove_min(
     return do_balance(minNode);
 }
 
-template <typename T, typename Cmp>
-typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::find_and_remove_max(
+template <typename Key, typename Cmp>
+typename AvlTree<Key, Cmp>::Node* AvlTree<Key, Cmp>::find_and_remove_max(
     Node* maxNode,
     Node*& subtreeRoot) {
     if (!maxNode->right) {
@@ -231,9 +231,10 @@ typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::find_and_remove_max(
     return do_balance(maxNode);
 }
 
-template <typename T, typename Cmp>
-typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::add_internal(Node* node,
-                                                              const T& data) {
+template <typename Key, typename Cmp>
+typename AvlTree<Key, Cmp>::Node* AvlTree<Key, Cmp>::add_internal(
+    Node* node,
+    const Key& data) {
     if (!node) {
         return new Node(data);
     }
@@ -247,8 +248,8 @@ typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::add_internal(Node* node,
     return do_balance(node);
 }
 
-template <typename T, typename Cmp>
-typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::rotate_left(Node* node) {
+template <typename Key, typename Cmp>
+typename AvlTree<Key, Cmp>::Node* AvlTree<Key, Cmp>::rotate_left(Node* node) {
     Node* tmp = node->right;
     node->right = tmp->left;
     tmp->left = node;
@@ -261,8 +262,8 @@ typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::rotate_left(Node* node) {
     return tmp;
 }
 
-template <typename T, typename Cmp>
-typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::rotate_right(Node* node) {
+template <typename Key, typename Cmp>
+typename AvlTree<Key, Cmp>::Node* AvlTree<Key, Cmp>::rotate_right(Node* node) {
     Node* tmp = node->left;
     node->left = tmp->right;
     tmp->right = node;
@@ -275,8 +276,8 @@ typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::rotate_right(Node* node) {
     return tmp;
 }
 
-template <typename T, typename Cmp>
-typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::do_balance(Node* node) {
+template <typename Key, typename Cmp>
+typename AvlTree<Key, Cmp>::Node* AvlTree<Key, Cmp>::do_balance(Node* node) {
     fix_height(node);
     fix_count(node);
 

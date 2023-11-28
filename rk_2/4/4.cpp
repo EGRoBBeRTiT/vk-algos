@@ -1,12 +1,12 @@
 #include <iostream>
 
-template <typename T, typename Cmp = std::less<T>>
+template <typename Key, typename Cmp = std::less<Key>>
 class AvlTree {
     struct Node {
-        Node(const T& data)
+        Node(const Key& data)
             : data(data), left(nullptr), right(nullptr), height(1) {}
 
-        T data;
+        Key data;
         Node* left;
         Node* right;
         size_t height;
@@ -16,19 +16,19 @@ class AvlTree {
     AvlTree() : root(nullptr) {}
     ~AvlTree() { destroy_tree(root); }
 
-    void Add(const T& data) { root = add_internal(root, data); }
-    bool Has(const T&);
-    void Delete(const T& data) { root = delete_internal(root, data); }
+    void Add(const Key& data) { root = add_internal(root, data); }
+    bool Has(const Key&);
+    void Delete(const Key& data) { root = delete_internal(root, data); }
 
-    std::string Next(const T&);
-    std::string Prev(const T&);
+    std::string Next(const Key&);
+    std::string Prev(const Key&);
 
    private:
     void destroy_tree(Node*);
-    Node* delete_internal(Node*, T);
+    Node* delete_internal(Node*, Key);
     Node* find_and_remove_min(Node*, Node*&);
     Node* find_and_remove_max(Node*, Node*&);
-    Node* add_internal(Node*, const T&);
+    Node* add_internal(Node*, const Key&);
     size_t get_height(Node* node) { return node ? node->height : 0; }
     void fix_height(Node* node) {
         node->height =
@@ -79,8 +79,8 @@ int main() {
 
 // ----------------Описание класса------------------
 
-template <typename T, typename Cmp>
-bool AvlTree<T, Cmp>::Has(const T& data) {
+template <typename Key, typename Cmp>
+bool AvlTree<Key, Cmp>::Has(const Key& data) {
     Node* tmp = root;
     while (tmp) {
         if (tmp->data == data) {
@@ -94,8 +94,8 @@ bool AvlTree<T, Cmp>::Has(const T& data) {
     return false;
 }
 
-template <typename T, typename Cmp>
-std::string AvlTree<T, Cmp>::Next(const T& data) {
+template <typename Key, typename Cmp>
+std::string AvlTree<Key, Cmp>::Next(const Key& data) {
     Node* currentNode = root;
     Node* parent = nullptr;
 
@@ -115,8 +115,8 @@ std::string AvlTree<T, Cmp>::Next(const T& data) {
     }
 }
 
-template <typename T, typename Cmp>
-std::string AvlTree<T, Cmp>::Prev(const T& data) {
+template <typename Key, typename Cmp>
+std::string AvlTree<Key, Cmp>::Prev(const Key& data) {
     Node* currentNode = root;
     Node* parent = nullptr;
 
@@ -136,8 +136,8 @@ std::string AvlTree<T, Cmp>::Prev(const T& data) {
     }
 }
 
-template <typename T, typename Cmp>
-void AvlTree<T, Cmp>::destroy_tree(Node* node) {
+template <typename Key, typename Cmp>
+void AvlTree<Key, Cmp>::destroy_tree(Node* node) {
     if (node) {
         destroy_tree(node->left);
         destroy_tree(node->right);
@@ -146,9 +146,9 @@ void AvlTree<T, Cmp>::destroy_tree(Node* node) {
     }
 }
 
-template <typename T, typename Cmp>
-typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::delete_internal(Node* node,
-                                                                 T data) {
+template <typename Key, typename Cmp>
+typename AvlTree<Key, Cmp>::Node* AvlTree<Key, Cmp>::delete_internal(Node* node,
+                                                                 Key data) {
     if (!node) {
         return nullptr;
     }
@@ -182,8 +182,8 @@ typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::delete_internal(Node* node,
     return do_balance(node);
 }
 
-template <typename T, typename Cmp>
-typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::find_and_remove_min(
+template <typename Key, typename Cmp>
+typename AvlTree<Key, Cmp>::Node* AvlTree<Key, Cmp>::find_and_remove_min(
     Node* minNode,
     Node*& subtreeRoot) {
     if (!minNode->left) {
@@ -194,8 +194,8 @@ typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::find_and_remove_min(
     return do_balance(minNode);
 }
 
-template <typename T, typename Cmp>
-typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::find_and_remove_max(
+template <typename Key, typename Cmp>
+typename AvlTree<Key, Cmp>::Node* AvlTree<Key, Cmp>::find_and_remove_max(
     Node* maxNode,
     Node*& subtreeRoot) {
     if (!maxNode->right) {
@@ -206,9 +206,9 @@ typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::find_and_remove_max(
     return do_balance(maxNode);
 }
 
-template <typename T, typename Cmp>
-typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::add_internal(Node* node,
-                                                              const T& data) {
+template <typename Key, typename Cmp>
+typename AvlTree<Key, Cmp>::Node* AvlTree<Key, Cmp>::add_internal(Node* node,
+                                                              const Key& data) {
     if (!node) {
         return new Node(data);
     }
@@ -222,8 +222,8 @@ typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::add_internal(Node* node,
     return do_balance(node);
 }
 
-template <typename T, typename Cmp>
-typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::rotate_left(Node* node) {
+template <typename Key, typename Cmp>
+typename AvlTree<Key, Cmp>::Node* AvlTree<Key, Cmp>::rotate_left(Node* node) {
     Node* tmp = node->right;
     node->right = tmp->left;
     tmp->left = node;
@@ -232,8 +232,8 @@ typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::rotate_left(Node* node) {
     return tmp;
 }
 
-template <typename T, typename Cmp>
-typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::rotate_right(Node* node) {
+template <typename Key, typename Cmp>
+typename AvlTree<Key, Cmp>::Node* AvlTree<Key, Cmp>::rotate_right(Node* node) {
     Node* tmp = node->left;
     node->left = tmp->right;
     tmp->right = node;
@@ -242,8 +242,8 @@ typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::rotate_right(Node* node) {
     return tmp;
 }
 
-template <typename T, typename Cmp>
-typename AvlTree<T, Cmp>::Node* AvlTree<T, Cmp>::do_balance(Node* node) {
+template <typename Key, typename Cmp>
+typename AvlTree<Key, Cmp>::Node* AvlTree<Key, Cmp>::do_balance(Node* node) {
     fix_height(node);
 
     switch (get_balance(node)) {

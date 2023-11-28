@@ -20,8 +20,8 @@ int main(void) {
 }
 
 //---------------------Решение с РЕКУРСИЕЙ------------------------
-template <typename T>
-int partition(T* arr,
+template <typename Key>
+int partition(Key* arr,
               const int& left,
               const int& right,
               const short& bit_mask) {
@@ -36,8 +36,8 @@ int partition(T* arr,
     return i;
 }
 
-template <typename T>
-void binary_MSD(T* arr,
+template <typename Key>
+void binary_MSD(Key* arr,
                 const int& left,
                 const int& right,
                 const short& bit_mask = 63) {

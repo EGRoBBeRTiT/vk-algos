@@ -54,22 +54,22 @@ Event FindMinDeathOrEighty(const Event& death,
     return birthPlus80Minus18;
 }
 
-template <typename T>
+template <typename Key>
 class MyVector {
    public:
-    MyVector() : capacity_(8), size_(0), arr_(new T[capacity_]) {}
+    MyVector() : capacity_(8), size_(0), arr_(new Key[capacity_]) {}
 
     MyVector(const MyVector& other)
         : capacity_(other.capacity_),
           size_(other.size_),
-          arr_(new T[capacity_]) {}
+          arr_(new Key[capacity_]) {}
 
     MyVector& operator=(const MyVector& other) {
         delete[] arr_;
 
         size_ = other.size_;
         capacity_ = other.capacity_;
-        arr_ = new T[capacity_];
+        arr_ = new Key[capacity_];
 
         for (size_t i = 0; i < size_; i++) {
             arr_[i] = other.arr_[i];
@@ -78,7 +78,7 @@ class MyVector {
 
     size_t size() const { return size_; }
 
-    void PushBack(const T& element) {
+    void PushBack(const Key& element) {
         if (size_ == capacity_) {
             Resize();
         }
@@ -86,7 +86,7 @@ class MyVector {
         arr_[size_++] = element;
     }
 
-    T& operator[](const int& i) { return arr_[i]; }
+    Key& operator[](const int& i) { return arr_[i]; }
 
     ~MyVector() { delete[] arr_; }
 
@@ -94,7 +94,7 @@ class MyVector {
     void Resize() {
         capacity_ <<= 1;
 
-        T* tmp = new T[capacity_];
+        Key* tmp = new Key[capacity_];
 
         for (size_t i = 0; i < size_; i++) {
             tmp[i] = arr_[i];
@@ -107,14 +107,14 @@ class MyVector {
 
     size_t capacity_;
     size_t size_;
-    T* arr_;
+    Key* arr_;
 };
 
 typedef bool (*Comparator)(const Event&, const Event&);
 
-template <typename T, Comparator cmp>
-void Merge(T& arr, size_t left, size_t middle, size_t right) {
-    T result;
+template <typename Key, Comparator cmp>
+void Merge(Key& arr, size_t left, size_t middle, size_t right) {
+    Key result;
     size_t i = left;    // счётчик левой части
     size_t j = middle;  // счётчик правой части
 
@@ -138,17 +138,17 @@ void Merge(T& arr, size_t left, size_t middle, size_t right) {
     }
 }
 
-template <typename T, Comparator cmp>
-void MergeSort(T& arr, size_t left, size_t right) {
+template <typename Key, Comparator cmp>
+void MergeSort(Key& arr, size_t left, size_t right) {
     if (right - left < 2)
         return;
 
     size_t middle = left + (right - left) / 2;
 
-    MergeSort<T, cmp>(arr, left, middle);
-    MergeSort<T, cmp>(arr, middle, right);
+    MergeSort<Key, cmp>(arr, left, middle);
+    MergeSort<Key, cmp>(arr, middle, right);
 
-    Merge<T, cmp>(arr, left, middle, right);
+    Merge<Key, cmp>(arr, left, middle, right);
 }
 
 void InputAndCheckEvents(MyVector<Event>& events, const int& n) {

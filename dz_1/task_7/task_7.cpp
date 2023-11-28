@@ -21,7 +21,7 @@ int main(void) {
 
 //---------------------Решение------------------------
 // Решил вместо рекурсии попробовать использовать стек
-template <class T>
+template <class Key>
 class Stack {
    public:
     Stack();
@@ -32,29 +32,29 @@ class Stack {
     Stack& operator=(const Stack& stack);
 
     bool IsEmpty() { return size == 0; }
-    void Push(T value);
-    T Pop();
+    void Push(Key value);
+    Key Pop();
 
    private:
     bool canPush() { return size < capacity; }
     void resize();
 
-    T* buffer;
+    Key* buffer;
     size_t size;
     size_t capacity;
 };
 
 // Параметры для вызова функции
-template <typename T>
+template <typename Key>
 struct CallParams {
-    T* arr;
+    Key* arr;
     int left;
     int right;
     short bit_mask;
 };
 
-template <typename T>
-int partition(T* arr,
+template <typename Key>
+int partition(Key* arr,
               const int& left,
               const int& right,
               const short& bit_mask) {
@@ -69,17 +69,17 @@ int partition(T* arr,
     return i;
 }
 
-template <typename T>
+template <typename Key>
 class BinaryMSD {
    public:
-    void Run(T* arr,
+    void Run(Key* arr,
              const int& left,
              const int& right,
              const short& bit_mask = 63) {
         call_stack.Push({arr, left, right, bit_mask});
 
         while (!call_stack.IsEmpty()) {
-            CallParams<T> next_params = call_stack.Pop();
+            CallParams<Key> next_params = call_stack.Pop();
 
             runInteration(next_params.arr, next_params.left, next_params.right,
                           next_params.bit_mask);
@@ -87,7 +87,7 @@ class BinaryMSD {
     }
 
    private:
-    void runInteration(T* arr,
+    void runInteration(Key* arr,
                        const int& left,
                        const int& right,
                        const short& bit_mask) {
@@ -103,7 +103,7 @@ class BinaryMSD {
         call_stack.Push({arr, pivot_index, right, new_bit_mask});
     }
 
-    Stack<CallParams<T>> call_stack;
+    Stack<CallParams<Key>> call_stack;
 };
 
 void read_array(std::istream& in, uint64_t* arr, const size_t& length) {
@@ -158,31 +158,31 @@ void test_algorithm() {
 }
 
 // -----------------Описание стека------------------------
-template <typename T>
-Stack<T>::Stack() : capacity(8), size(0), buffer(new T[8]){};
+template <typename Key>
+Stack<Key>::Stack() : capacity(8), size(0), buffer(new Key[8]){};
 
-template <typename T>
-Stack<T>::Stack(const size_t& capacity)
-    : capacity(capacity), size(0), buffer(new T[capacity]){};
+template <typename Key>
+Stack<Key>::Stack(const size_t& capacity)
+    : capacity(capacity), size(0), buffer(new Key[capacity]){};
 
-template <typename T>
-Stack<T>::Stack(const Stack& stack)
+template <typename Key>
+Stack<Key>::Stack(const Stack& stack)
     : capacity(stack.capacity),
       size(stack.size),
-      buffer(new T[stack.capacity]) {
+      buffer(new Key[stack.capacity]) {
     for (size_t i = 0; i < size; ++i) {
         buffer[i] = stack.buffer[i];
     }
 };
 
-template <typename T>
-Stack<T>& Stack<T>::operator=(const Stack<T>& stack) {
+template <typename Key>
+Stack<Key>& Stack<Key>::operator=(const Stack<Key>& stack) {
     delete[] buffer;
 
     capacity = stack.capacity;
     size = stack.size;
 
-    buffer = new T[size];
+    buffer = new Key[size];
 
     for (size_t i = 0; i < size; ++i) {
         buffer[i] = stack.buffer[i];
@@ -191,8 +191,8 @@ Stack<T>& Stack<T>::operator=(const Stack<T>& stack) {
     return *this;
 };
 
-template <typename T>
-void Stack<T>::Push(T value) {
+template <typename Key>
+void Stack<Key>::Push(Key value) {
     if (!canPush()) {
         resize();
     }
@@ -201,18 +201,18 @@ void Stack<T>::Push(T value) {
     size++;
 }
 
-template <typename T>
-T Stack<T>::Pop() {
+template <typename Key>
+Key Stack<Key>::Pop() {
     assert(!IsEmpty());
 
     return buffer[--size];
 }
 
-template <typename T>
-void Stack<T>::resize() {
+template <typename Key>
+void Stack<Key>::resize() {
     capacity *= 2;
 
-    T* new_buffer = new T[capacity];
+    Key* new_buffer = new Key[capacity];
 
     for (size_t i = 0; i < size; ++i) {
         new_buffer[i] = buffer[i];

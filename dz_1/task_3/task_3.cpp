@@ -15,14 +15,14 @@ void run(std::istream& in, std::ostream& out);
 void test_algorithm();
 void test_queue();
 
-template <class T>
+template <class Key>
 class Queue {
    private:
     int head;
     int tail;
     int buffer_size;
     int size;
-    T* buffer;
+    Key* buffer;
 
     bool CanPush() { return ((tail + 1) % buffer_size) != head; };
 
@@ -38,9 +38,9 @@ class Queue {
 
     bool IsEmpty() { return head == tail; };
 
-    void Push(T value);
+    void Push(Key value);
 
-    T Pop();
+    Key Pop();
 };
 
 int main(void) {
@@ -53,8 +53,8 @@ int main(void) {
 
 // -----------------РЕШЕНИЕ-------------------
 
-template <class T>
-bool do_command(const unsigned int& command, const T& value, Queue<T>& queue) {
+template <class Key>
+bool do_command(const unsigned int& command, const Key& value, Queue<Key>& queue) {
     switch (command) {
         case 2:
             return queue.Pop() == value;
@@ -91,24 +91,24 @@ void run(std::istream& in, std::ostream& out) {
     out << (is_correct ? "YES" : "NO") << std::endl;
 }
 
-template <class T>
-Queue<T>::Queue() : buffer_size(8), head(0), tail(0), size(0) {
-    buffer = new T[buffer_size];
+template <class Key>
+Queue<Key>::Queue() : buffer_size(8), head(0), tail(0), size(0) {
+    buffer = new Key[buffer_size];
 }
 
-template <class T>
-Queue<T>::Queue(const unsigned int& buffer_size)
+template <class Key>
+Queue<Key>::Queue(const unsigned int& buffer_size)
     : buffer_size(buffer_size), head(0), tail(0), size(0) {
-    buffer = new T[buffer_size];
+    buffer = new Key[buffer_size];
 }
 
-template <class T>
-Queue<T>::Queue(const Queue& queue)
+template <class Key>
+Queue<Key>::Queue(const Queue& queue)
     : buffer_size(queue.buffer_size),
       head(queue.head),
       tail(queue.tail),
       size(queue.size) {
-    buffer = new T[buffer_size];
+    buffer = new Key[buffer_size];
 
     for (int i = 0; i < size; ++i) {
         buffer[(i + head) % buffer_size] =
@@ -116,15 +116,15 @@ Queue<T>::Queue(const Queue& queue)
     }
 };
 
-template <class T>
-Queue<T>& Queue<T>::operator=(const Queue<T>& queue) {
+template <class Key>
+Queue<Key>& Queue<Key>::operator=(const Queue<Key>& queue) {
     delete[] buffer;
 
     buffer_size = queue.buffer_size;
     head = queue.head;
     tail = queue.tail;
     size = queue.size;
-    buffer = new T[buffer_size];
+    buffer = new Key[buffer_size];
 
     for (int i = 0; i < size; ++i) {
         buffer[(i + head) % buffer_size] =
@@ -134,8 +134,8 @@ Queue<T>& Queue<T>::operator=(const Queue<T>& queue) {
     return *this;
 }
 
-template <class T>
-void Queue<T>::Push(T value) {
+template <class Key>
+void Queue<Key>::Push(Key value) {
     if (!CanPush()) {
         Resize();
     }
@@ -145,13 +145,13 @@ void Queue<T>::Push(T value) {
     size++;
 }
 
-template <class T>
-T Queue<T>::Pop() {
+template <class Key>
+Key Queue<Key>::Pop() {
     if (IsEmpty()) {
         return -1;
     }
 
-    T head_value = buffer[head];
+    Key head_value = buffer[head];
 
     head = (head + 1) % buffer_size;
     size--;
@@ -159,9 +159,9 @@ T Queue<T>::Pop() {
     return head_value;
 }
 
-template <class T>
-void Queue<T>::Resize() {
-    T* new_buffer = new T[buffer_size * 2];
+template <class Key>
+void Queue<Key>::Resize() {
+    Key* new_buffer = new Key[buffer_size * 2];
 
     for (int i = 0; i < buffer_size - 1; ++i) {
         new_buffer[i] = buffer[(i + head) % buffer_size];

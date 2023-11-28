@@ -22,15 +22,15 @@ struct Point {
     bool operator<(const Point& point) const { return this->x < point.x; }
 };
 
-template <class T>
+template <class Key>
 struct DefaultComparator {
-    bool operator()(const T& l, const T& r) const { return l < r; }
+    bool operator()(const Key& l, const Key& r) const { return l < r; }
 };
 
-template <class T, class Comparator = DefaultComparator<T>>
-void merge_sort(T* arr,
+template <class Key, class Comparator = DefaultComparator<Key>>
+void merge_sort(Key* arr,
                 const size_t& length,
-                Comparator comp = DefaultComparator<T>());
+                Comparator comp = DefaultComparator<Key>());
 void run(std::istream& in, std::ostream& out);
 void test_algorithm();
 void input_array(std::istream& in, Point* arr, const size_t& length);
@@ -99,17 +99,17 @@ size_t count_one_color_length(Point* arr, const size_t& length) {
     return one_color_length;
 }
 
-template <class T, class Comparator = DefaultComparator<T>>
-void merge(T* arr,
+template <class Key, class Comparator = DefaultComparator<Key>>
+void merge(Key* arr,
            const size_t& start,
            const size_t& mid,
            const size_t& end,
-           Comparator comp = DefaultComparator<T>()) {
+           Comparator comp = DefaultComparator<Key>()) {
     size_t index_a = start;
     size_t index_b = mid;
     size_t merge_index = 0;
 
-    T* merged_arr = new T[end - start];
+    Key* merged_arr = new Key[end - start];
 
     while (index_a < mid && index_b < end) {
         if (comp(arr[index_a], arr[index_b])) {
@@ -138,8 +138,8 @@ void merge(T* arr,
 
     delete[] merged_arr;
 }
-template <class T, class Comparator>
-void merge_sort(T* arr, const size_t& length, Comparator comp) {
+template <class Key, class Comparator>
+void merge_sort(Key* arr, const size_t& length, Comparator comp) {
     // Разбиение на 2^k подмассивов
     for (size_t curr_length = 1; curr_length < length; curr_length *= 2) {
         // Обход по парам подмассивов
@@ -151,7 +151,7 @@ void merge_sort(T* arr, const size_t& length, Comparator comp) {
                 end = length;
             }
             // слияние двух подмассивов с помощью буфферного массива
-            merge<T, Comparator>(arr, start, start + curr_length, end, comp);
+            merge<Key, Comparator>(arr, start, start + curr_length, end, comp);
         }
     }
 }
