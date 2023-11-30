@@ -31,8 +31,8 @@ void read_array(std::istream& in, Heap<Array<int>>& heap);
 void out_heap_array(std::ostream& out, Heap<Array<int>>& heap);
 
 int main(void) {
-    // test_algorithm();
-    run(std::cin, std::cout);
+    test_algorithm();
+    // run(std::cin, std::cout);
 
     return 0;
 }

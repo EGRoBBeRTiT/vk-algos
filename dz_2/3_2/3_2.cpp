@@ -59,7 +59,7 @@ class BTree {
     void Insert(const Key& key);
     bool Find(const Key& key) { return find_internal(root, key); }
 
-    void OutputByLevels(std::ostream& out);
+    void OutputByLevels(void (*out)(const std::string&));
 
    private:
     bool is_node_full(Node* node) { return node->keys.size() == 2 * t - 1; }
@@ -82,7 +82,9 @@ void run(std::istream& in, std::ostream& out) {
         tree.Insert(value);
     }
 
-    tree.OutputByLevels(out);
+    static std::ostream& OUT = out;
+
+    tree.OutputByLevels([](const std::string& value) { OUT << value; });
 }
 
 //---------------Описание класса -----------------
@@ -104,7 +106,7 @@ void BTree<Key, Cmp>::Insert(const Key& key) {
 }
 
 template <typename Key, typename Cmp>
-void BTree<Key, Cmp>::OutputByLevels(std::ostream& out) {
+void BTree<Key, Cmp>::OutputByLevels(void (*out)(const std::string&)) {
     std::queue<Node*> q;
     Node* currentNode = nullptr;
     q.push(root);
@@ -118,14 +120,15 @@ void BTree<Key, Cmp>::OutputByLevels(std::ostream& out) {
             q.pop();
 
             for (const auto& key : currentNode->keys) {
-                out << key << ' ';
+                out(std::to_string(key));
+                out(" ");
             }
 
             for (const auto& child : currentNode->children) {
                 q.push(child);
             }
         }
-        out << std::endl;
+        out("\n");
     }
 }
 

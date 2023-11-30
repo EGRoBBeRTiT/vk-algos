@@ -22,8 +22,8 @@ void run(std::istream& in, std::ostream& out);
 void test_algorithm();
 
 int main(void) {
-    // test_algorithm();
-    run(std::cin, std::cout);
+    test_algorithm();
+    // run(std::cin, std::cout);
 
     return 0;
 }
@@ -45,7 +45,7 @@ class BinaryTree {
     ~BinaryTree();
 
     void Add(const long&);
-    void Post_order_out(std::ostream& out);
+    void BypassPostOrder(void (*out)(const long&));
 
    private:
     Node* root;
@@ -67,7 +67,9 @@ void run(std::istream& in, std::ostream& out) {
         tree.Add(value);
     }
 
-    tree.Post_order_out(out);
+    static std::ostream& OUT = out;
+
+    tree.BypassPostOrder([](const long& value) { OUT << value << " "; });
 }
 
 // --------------Описание класса ------------
@@ -141,7 +143,7 @@ BinaryTree::~BinaryTree() {
     root = nullptr;
 }
 
-void BinaryTree::Post_order_out(std::ostream& out) {
+void BinaryTree::BypassPostOrder(void (*out)(const long&)) {
     std::stack<Node*> stack;
     Node* current_node = root;
     Node* stack_node = nullptr;
@@ -166,7 +168,7 @@ void BinaryTree::Post_order_out(std::ostream& out) {
         stack_node = stack.top();
         stack.pop();
 
-        out << stack_node->value << " ";
+        out(stack_node->value);
 
         if (!stack.empty()) {
             prev_stack_node = stack.top();
