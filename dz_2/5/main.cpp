@@ -72,11 +72,11 @@ class BitWriter {
 
     const std::vector<unsigned char>& GetBuffer() const { return buffer; }
 
-    size_t GetBitCount() const { return bitCount; }
+    unsigned long long GetBitCount() const { return bitCount; }
 
    private:
     std::vector<unsigned char> buffer;
-    size_t bitCount;
+    unsigned long long bitCount;
 };
 
 int main() {
@@ -201,9 +201,9 @@ class HuffmanTree {
     };
     size_t GetLettersCount() { return letters_count; };
 
-    size_t GetBitsCount() {
+    unsigned long long GetBitsCount() {
         std::vector<byte> code;
-        size_t bits_count = 0;
+        unsigned long long bits_count = 0;
 
         if (root && root->letter) {
             code.push_back(*"1");
@@ -275,7 +275,7 @@ class HuffmanTree {
 
     void get_bits_count_internal(HuffmanNode* node,
                                  std::vector<byte>& code,
-                                 size_t& bits_count) {
+                                 unsigned long long& bits_count) {
         if (node->left) {
             code.push_back(*"1");
             get_bits_count_internal(node->left, code, bits_count);
@@ -313,16 +313,6 @@ void Encode(IInputStream& original, IOutputStream& compressed) {
         buffer.push_back(value);
         map.insert({value, map[value]++});
     }
-    std::cout << "\n-------------Исходные символы-------------------\n";
-    for (size_t i = buffer.size() - 8; i < buffer.size(); ++i) {
-        std::cout << buffer[i];
-    }
-    std::cout << "\n---------------Исходные байты-----------------\n";
-    for (size_t i = buffer.size() - 8; i < buffer.size(); ++i) {
-        std::cout << std::bitset<8>(buffer[i]) << "|";
-    }
-    std::cout << "\n--------------------------------\n";
-    std::cout << "Byte count: " << std::to_string(buffer.size() % 4);
 
     //--------------------------------------
 
@@ -392,10 +382,18 @@ void Encode(IInputStream& original, IOutputStream& compressed) {
     // Записываем закодированное дерево
     huffman_tree.EncodeTree(bw);
     // Записываем полезную длину последнего байта
-    size_t bit_count =
-        8 - ((bw.GetBitCount() + huffman_tree.GetBitsCount()) % 8);
+    unsigned long long bits_count = 0;
+    for (auto it = map.begin(); it != map.end(); it++) {
+        auto code = compressed_map.find(it->first);
 
-    bw.WriteByte(bit_count);
+        if (code != compressed_map.end()) {
+            bits_count += code->second.size() * it->second;
+        }
+    }
+    unsigned long long useful_bit_count =
+        ((bw.GetBitCount() + bits_count + 8) % 8);
+
+    bw.WriteByte(useful_bit_count);
     // Записываем само сообщение
     for (auto& letter : buffer) {
         auto code = compressed_map.find(letter);
@@ -407,29 +405,8 @@ void Encode(IInputStream& original, IOutputStream& compressed) {
         }
     }
 
-    std::cout << "\n--------------Коды символов------------------\n";
-    for (size_t i = buffer.size() - 8; i < buffer.size(); ++i) {
-        auto code = compressed_map.find(buffer[i]);
-
-        if (code != compressed_map.end()) {
-            std::cout << "'" << code->first << "': ";
-
-            for (auto& bit : code->second) {
-                std::cout << bit;
-            }
-        }
-
-        std::cout << "\n";
-    }
-
     for (auto& byte : bw.GetBuffer()) {
         compressed.Write(byte);
-    }
-
-    std::cout << "\n--------------Закодированные байты------------------\n";
-    std::cout << "Количество последних бит: " << bit_count << "\n";
-    for (size_t i = bw.GetBuffer().size() - 8; i < bw.GetBuffer().size(); ++i) {
-        std::cout << std::bitset<8>(bw.GetBuffer()[i]) << "|";
     }
 
     return;
@@ -583,17 +560,4 @@ void Decode(IInputStream& compressed, IOutputStream& original) {
     for (auto& letter : decoded) {
         original.Write(letter);
     }
-
-    std::cout << "\n-------------Декодированные символы-------------------\n";
-    for (size_t i = decoded.size() - 8; i < decoded.size(); ++i) {
-        std::cout << decoded[i];
-    }
-
-    std::cout << "\n--------------Декодированные байты------------------\n";
-    for (size_t i = decoded.size() - 8; i < decoded.size(); ++i) {
-        std::cout << std::bitset<8>(decoded[i]) << "|";
-    }
-
-    std::cout << "\n--------------------------------\n";
-    std::cout << "Byte count: " << std::to_string(decoded.size() % 4) << "\n";
 }
