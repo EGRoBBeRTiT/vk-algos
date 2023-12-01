@@ -82,7 +82,7 @@ class BitWriter {
 int main() {
     std::map<byte, std::vector<byte>> codes;
 
-    IInputStream original("sample_1280×853.bmp");
+    IInputStream original("sample.bmp");
     IOutputStream compressed_output("compressed.bmp");
     Encode(original, compressed_output);
     compressed_output.Close();
@@ -312,7 +312,16 @@ void Encode(IInputStream& original, IOutputStream& compressed) {
     while (original.Read(value)) {
         buffer.push_back(value);
         map.insert({value, map[value]++});
+
+        std::cout << value;
     }
+
+    std::cout << "\n--------------------------------\n";
+
+    for (auto& byte : buffer) {
+        std::cout << std::bitset<8>(byte) << "|";
+    }
+    std::cout << "\n--------------------------------\n";
 
     //--------------------------------------
 
@@ -548,13 +557,21 @@ void Decode(IInputStream& compressed, IOutputStream& original) {
         current_index++;
     }
 
-    unsigned char null = 0;
+    // unsigned char null = 0;
 
-    if (decoded.size() && decoded[decoded.size() - 1] == null) {
-        decoded.push_back(null);
-    }
+    // if (decoded.size() && decoded[decoded.size() - 1] == null) {
+    //     decoded.push_back(null);
+    // }
 
     for (auto& letter : decoded) {
         original.Write(letter);
+        std::cout << value << "|";
     }
+
+    std::cout << "\n--------------------------------\n";
+
+    for (auto& byte : decoded) {
+        std::cout << std::bitset<8>(byte) << "|";
+    }
+    std::cout << "\n--------------------------------\n";
 }
