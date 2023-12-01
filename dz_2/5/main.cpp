@@ -79,13 +79,6 @@ class BitWriter {
     size_t bitCount;
 };
 
-void visualizeBuffer(const std::vector<unsigned char>& buffer) {
-    for (auto& b : buffer) {
-        std::cout << std::bitset<8>(b) << "|";
-    }
-    std::cout << std::endl;
-}
-
 int main() {
     std::map<byte, std::vector<byte>> codes;
 
@@ -212,11 +205,13 @@ class HuffmanTree {
         std::vector<byte> code;
         size_t bits_count = 0;
 
-        if (root->letter) {
+        if (root && root->letter) {
             code.push_back(*"1");
         }
 
-        get_bits_count_internal(root, code, bits_count);
+        if (root) {
+            get_bits_count_internal(root, code, bits_count);
+        }
 
         return bits_count;
     };
@@ -224,14 +219,24 @@ class HuffmanTree {
     void DFS(std::map<byte, std::vector<byte>>& map) {
         std::vector<byte> code;
 
-        if (root->letter) {
+        if (root && root->letter) {
             code.push_back(*"1");
         }
 
-        dfs_internal(root, code, map);
+        if (root) {
+            std::cout << "\n----Кодирование символов дерева-------\n";
+
+            dfs_internal(root, code, map);
+        }
     }
 
-    void EncodeTree(BitWriter& bw) { encode_tree_internal(root, bw); };
+    void EncodeTree(BitWriter& bw) {
+        if (root) {
+            std::cout << "\n---------------------------\n Encoding tree\n";
+
+            encode_tree_internal(root, bw);
+        }
+    };
 
    private:
     void dfs_internal(HuffmanNode* node,
@@ -246,7 +251,14 @@ class HuffmanTree {
             dfs_internal(node->right, code, map);
         }
 
-        if (node->letter) {
+        if (!node->left && !node->right) {
+            std::cout << "'" << node->letter << "': ";
+
+            for (auto& bit : code) {
+                std::cout << bit;
+            }
+            std::cout << "\n";
+
             map.insert({node->letter, code});
         }
 
@@ -256,6 +268,15 @@ class HuffmanTree {
     };
 
     void encode_tree_internal(HuffmanNode* node, BitWriter& bw) {
+        if (!node->left && !node->right) {
+            std::cout << "write bit 1 and " << std::bitset<8>(node->letter)
+                      << " " << node->letter << '\n';
+
+            bw.WriteBit(1);
+            bw.WriteByte(node->letter);
+
+            return;
+        }
         if (node->left) {
             encode_tree_internal(node->left, bw);
         }
@@ -263,13 +284,8 @@ class HuffmanTree {
             encode_tree_internal(node->right, bw);
         }
 
-        if (node->letter) {
-            bw.WriteBit(1);
-            bw.WriteByte(node->letter);
-
-        } else {
-            bw.WriteBit(0);
-        }
+        std::cout << "write bit 0\n";
+        bw.WriteBit(0);
     };
 
     void get_bits_count_internal(HuffmanNode* node,
@@ -308,10 +324,23 @@ void Encode(IInputStream& original, IOutputStream& compressed) {
 
     byte value;
 
+    std::cout << "---------------------------------\n";
+    std::cout << "Исходный текст: \n";
+
     while (original.Read(value)) {
         buffer.push_back(value);
         map.insert({value, map[value]++});
+        std::cout << value;
     }
+
+    std::cout << "\n---------------------------------\n";
+    std::cout << "Исходный текст с байтах: \n";
+
+    for (auto& byte : buffer) {
+        std::cout << std::bitset<8>(byte) << "|";
+    }
+
+    std::cout << "\n---------------------------------\n\n";
 
     //--------------------------------------
 
@@ -335,14 +364,16 @@ void Encode(IInputStream& original, IOutputStream& compressed) {
         make_nodes_heap();
     };
 
-    std::cout << "\nКоличества повторений: \n";
+    std::cout << "\n\n---------------------------------\n";
+    std::cout << "Количества повторений: \n";
 
     for (auto it = map.begin(); it != map.end(); it++) {
         nodes_heap.push_back(new HuffmanNode(it->first, it->second));
 
         std::cout << "'" << it->first << "': " << it->second << std::endl;
     }
-    std::cout << "\n";
+
+    std::cout << "---------------------------------\n\n";
 
     make_nodes_heap();
 
@@ -380,7 +411,8 @@ void Encode(IInputStream& original, IOutputStream& compressed) {
 
     huffman_tree.DFS(compressed_map);
 
-    std::cout << "\nКоды букв: \n";
+    std::cout << "\n\n---------------------------------\n";
+    std::cout << "Коды букв: \n";
 
     for (auto it = compressed_map.begin(); it != compressed_map.end(); it++) {
         std::cout << "'" << it->first << "': ";
@@ -391,79 +423,127 @@ void Encode(IInputStream& original, IOutputStream& compressed) {
 
         std::cout << std::endl;
     }
+    std::cout << "\n---------------------------------\n\n";
 
     BitWriter bw;
     // Записываем количество букв алфавита
     bw.WriteByte(compressed_map.size());
+    std::cout << "\n\nКоличество букв алфавита: " << compressed_map.size()
+              << "\n\n";
     // Записываем закодированное дерево
     huffman_tree.EncodeTree(bw);
     // Записываем полезную длину последнего байта
     size_t bit_count = (bw.GetBitCount() + huffman_tree.GetBitsCount()) % 8;
-    std::cout << "\nКоличество полезных битов в последнем байте: " << bit_count
-              << " " << huffman_tree.GetBitsCount() << std::endl;
+    std::cout << "\n\nКоличество полезных битов: " << bit_count << "\n\n";
+
     bw.WriteByte(bit_count);
     // Записываем само сообщение
     for (auto& letter : buffer) {
-        auto code = compressed_map.find(letter)->second;
+        auto code = compressed_map.find(letter);
 
-        for (auto& bit : code) {
-            bw.WriteBit(bit);
+        if (code != compressed_map.end()) {
+            for (auto& bit : code->second) {
+                bw.WriteBit(bit);
+            }
         }
     }
 
+    std::cout << "\n\n---------------------------------\n";
+    std::cout << "Закодированное сообщение в байтах: \n";
+
     for (auto& byte : bw.GetBuffer()) {
         compressed.Write(byte);
+        std::cout << std::bitset<8>(byte) << "|";
     }
+
+    std::cout << "\n---------------------------------\n\n";
+
+    std::cout << "\n\n---------------------------------\n";
+    std::cout << "Закодированное сообщение: \n";
+
+    for (auto& byte : bw.GetBuffer()) {
+        std::cout << byte;
+    }
+
+    std::cout << "\n---------------------------------\n\n";
 
     return;
 }
 
 void Decode(IInputStream& compressed, IOutputStream& original) {
     // ---------------------------------------
+    std::cout << "\n\n---------------------------------\n";
+    std::cout << "           ДЕКОДИРОВАНИЕ";
+    std::cout << "\n---------------------------------\n\n";
 
     byte value;
     std::string string_bit;
     size_t letters_count = 0;
 
-    // Читаем количество букв с алфавите
+    // Читаем количество букв в алфавите
     compressed.Read(value);
-    letters_count = value;
+    letters_count = 0;
+    std::string bits{};
+    bits = std::bitset<8>(value).to_string();
+    for (uint8_t i = 0; i < 8; ++i) {
+        auto num = bits[i] == *"1" ? 1 : 0;
 
-    std::cout << '\n' << "Letters count: " << letters_count << "\n";
+        letters_count += num * pow(2, 7 - i);
+    }
+    std::cout << "\n\nКоличество букв алфавита: " << letters_count << "\n\n";
 
     // Читаем дерево
     std::vector<byte> compressed_bits;
 
     std::string string_bits;
 
+    std::cout << "\n\n---------------------------------\n";
+    std::cout << "Закодированное сообщение: \n";
+
     while (compressed.Read(value)) {
         string_bits = std::bitset<8>(value).to_string();
+
+        std::cout << value;
 
         for (size_t i = 0; i < 8; i++) {
             compressed_bits.push_back(string_bits[i]);
         }
     }
+    std::cout << "\n---------------------------------\n";
+    std::cout << "Закодированное сообщение в байтах: \n";
+    size_t index = 0;
+    for (auto& byte : compressed_bits) {
+        std::cout << byte;
+        if (index % 8 == 7) {
+            std::cout << "|";
+        }
+        index++;
+    }
+    std::cout << "\n---------------------------------\n\n";
 
     size_t read_letters_count = 0;
     HuffmanTree huffman_tree;
     size_t current_index = 0;
     std::stack<HuffmanNode*> stack;
 
-    while (read_letters_count < letters_count || !stack.empty()) {
+    while ((read_letters_count < letters_count || !stack.empty()) &&
+           current_index < compressed_bits.size()) {
         byte bit = compressed_bits[current_index];
 
         if (bit == *"1") {
             unsigned char letter = 0;
 
             for (short j = 1; j < 9; ++j) {
-                letter += ((compressed_bits[current_index + j] - '0') *
-                           pow(2, 8 - j));
+                auto num = compressed_bits[current_index + j] == *"1" ? 1 : 0;
+
+                letter += num * pow(2, 8 - j);
             }
+
+            std::cout << "read bit 1 and " << std::bitset<8>(letter) << '\n';
             current_index += 8;
 
             if (letters_count == 1) {
-                huffman_tree.SetRoot(
-                    new HuffmanNode(new HuffmanNode(letter), nullptr));
+                huffman_tree.SetRoot(new HuffmanNode(letter));
 
                 current_index++;
                 break;
@@ -474,6 +554,8 @@ void Decode(IInputStream& compressed, IOutputStream& original) {
         }
 
         if (bit == *"0") {
+            std::cout << "read bit 0" << '\n';
+
             HuffmanNode* right = stack.top();
             stack.pop();
 
@@ -484,7 +566,7 @@ void Decode(IInputStream& compressed, IOutputStream& original) {
                 stack.pop();
             }
 
-            if (read_letters_count == letters_count && stack.empty()) {
+            if (read_letters_count >= letters_count && stack.empty()) {
                 huffman_tree.SetRoot(new HuffmanNode(left, right));
 
                 current_index++;
@@ -509,39 +591,38 @@ void Decode(IInputStream& compressed, IOutputStream& original) {
     for (auto it = compressed_map.begin(); it != compressed_map.end(); it++) {
         decoded_codes.insert({it->second, it->first});
     }
+    // for (auto& letter : compressed_bits) {
+    //     std::cout << letter;
+    // }
 
-    for (auto& letter : compressed_bits) {
-        std::cout << letter;
-    }
-
-    std::cout << '\n';
-
-    std::cout << "\nРасшифрованная таблица:\n";
+    std::cout << "\n\n---------------------------------\n";
+    std::cout << "Расшифрованная таблица: \n";
 
     for (auto it = decoded_codes.begin(); it != decoded_codes.end(); it++) {
         for (auto& letter : it->first) {
             std::cout << letter;
         }
-        std::cout << ": " << it->second;
-
-        std::cout << std::endl;
+        std::cout << ": '" << it->second << "'\n";
     }
+
+    std::cout << "\n---------------------------------\n\n";
 
     //----------------------------
 
     // Считываем количество полезных символов
     size_t useful_bit_count = 0;
     for (size_t i = 0; i < 8; ++i) {
-        useful_bit_count +=
-            ((compressed_bits[i + current_index] - '0') * pow(2, 7 - i));
+        auto num = compressed_bits[i + current_index] == *"1" ? 1 : 0;
+
+        useful_bit_count += (num * pow(2, 7 - i));
     }
+
+    std::cout << "\n\nКоличество полезных битов: " << useful_bit_count
+              << "\n\n";
 
     if (useful_bit_count == 0) {
         useful_bit_count = 8;
     }
-
-    std::cout << "Количество полезных битов: " << current_index << " "
-              << useful_bit_count << " ";
 
     current_index += 8;
 
@@ -567,12 +648,17 @@ void Decode(IInputStream& compressed, IOutputStream& original) {
         current_index++;
     }
 
-    std::cout << std::endl;
+    std::cout << "\n\n---------------------------------\n";
+    std::cout << "Декодированное сообщение: \n";
 
     for (auto& letter : decoded) {
         original.Write(letter);
         std::cout << letter;
     }
-
-    std::cout << std::endl;
+    std::cout << "\n---------------------------------\n";
+    std::cout << "Декодированное сообщение в байтах: \n";
+    for (auto& letter : decoded) {
+        std::cout << std::bitset<8>(letter) << "|";
+    }
+    std::cout << "\n---------------------------------\n";
 }
