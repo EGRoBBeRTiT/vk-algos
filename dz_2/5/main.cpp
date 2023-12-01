@@ -82,13 +82,13 @@ class BitWriter {
 int main() {
     std::map<byte, std::vector<byte>> codes;
 
-    IInputStream original("sample.bmp");
-    IOutputStream compressed_output("compressed.bmp");
+    IInputStream original("input.txt");
+    IOutputStream compressed_output("compressed.txt");
     Encode(original, compressed_output);
     compressed_output.Close();
 
-    IInputStream compressed_input("compressed.bmp");
-    IOutputStream decoded("decoded.bmp");
+    IInputStream compressed_input("compressed.txt");
+    IOutputStream decoded("decoded.txt");
     Decode(compressed_input, decoded);
 
     return 0;
@@ -312,16 +312,17 @@ void Encode(IInputStream& original, IOutputStream& compressed) {
     while (original.Read(value)) {
         buffer.push_back(value);
         map.insert({value, map[value]++});
-
-        std::cout << value;
     }
-
-    std::cout << "\n--------------------------------\n";
-
-    for (auto& byte : buffer) {
-        std::cout << std::bitset<8>(byte) << "|";
+    std::cout << "\n-------------Исходные символы-------------------\n";
+    for (size_t i = buffer.size() - 8; i < buffer.size(); ++i) {
+        std::cout << buffer[i];
+    }
+    std::cout << "\n---------------Исходные байты-----------------\n";
+    for (size_t i = buffer.size() - 8; i < buffer.size(); ++i) {
+        std::cout << std::bitset<8>(buffer[i]) << "|";
     }
     std::cout << "\n--------------------------------\n";
+    std::cout << "Byte count: " << std::to_string(buffer.size() % 4);
 
     //--------------------------------------
 
@@ -391,7 +392,8 @@ void Encode(IInputStream& original, IOutputStream& compressed) {
     // Записываем закодированное дерево
     huffman_tree.EncodeTree(bw);
     // Записываем полезную длину последнего байта
-    size_t bit_count = (bw.GetBitCount() + huffman_tree.GetBitsCount()) % 8;
+    size_t bit_count =
+        8 - ((bw.GetBitCount() + huffman_tree.GetBitsCount()) % 8);
 
     bw.WriteByte(bit_count);
     // Записываем само сообщение
@@ -405,8 +407,29 @@ void Encode(IInputStream& original, IOutputStream& compressed) {
         }
     }
 
+    std::cout << "\n--------------Коды символов------------------\n";
+    for (size_t i = buffer.size() - 8; i < buffer.size(); ++i) {
+        auto code = compressed_map.find(buffer[i]);
+
+        if (code != compressed_map.end()) {
+            std::cout << "'" << code->first << "': ";
+
+            for (auto& bit : code->second) {
+                std::cout << bit;
+            }
+        }
+
+        std::cout << "\n";
+    }
+
     for (auto& byte : bw.GetBuffer()) {
         compressed.Write(byte);
+    }
+
+    std::cout << "\n--------------Закодированные байты------------------\n";
+    std::cout << "Количество последних бит: " << bit_count << "\n";
+    for (size_t i = bw.GetBuffer().size() - 8; i < bw.GetBuffer().size(); ++i) {
+        std::cout << std::bitset<8>(bw.GetBuffer()[i]) << "|";
     }
 
     return;
@@ -557,21 +580,20 @@ void Decode(IInputStream& compressed, IOutputStream& original) {
         current_index++;
     }
 
-    // unsigned char null = 0;
-
-    // if (decoded.size() && decoded[decoded.size() - 1] == null) {
-    //     decoded.push_back(null);
-    // }
-
     for (auto& letter : decoded) {
         original.Write(letter);
-        std::cout << value << "|";
+    }
+
+    std::cout << "\n-------------Декодированные символы-------------------\n";
+    for (size_t i = decoded.size() - 8; i < decoded.size(); ++i) {
+        std::cout << decoded[i];
+    }
+
+    std::cout << "\n--------------Декодированные байты------------------\n";
+    for (size_t i = decoded.size() - 8; i < decoded.size(); ++i) {
+        std::cout << std::bitset<8>(decoded[i]) << "|";
     }
 
     std::cout << "\n--------------------------------\n";
-
-    for (auto& byte : decoded) {
-        std::cout << std::bitset<8>(byte) << "|";
-    }
-    std::cout << "\n--------------------------------\n";
+    std::cout << "Byte count: " << std::to_string(decoded.size() % 4) << "\n";
 }
